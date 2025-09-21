@@ -1,2 +1,30 @@
 # ai-transcriber
-Pipeline: transcription -> diarization -> summarization -> obsidian
+Pipeline common: audio transcription -> diarization -> summarization -> storage
+
+Pipeline 1: Whisper -> NeMo -> gemma3 -> obsidian
+
+Requirements:
+- Python 3.10
+- ffmpeg (requirement Whisper) - https://github.com/BtbN/FFmpeg-Builds/releases - TODO: заменить на pyaudio и подготовить torch.Tensor?
+- pip install openai-whisper
+- Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools" (6 GB)
+- pip install nemo_toolkit["asr"]
+- Download Ollama https://ollama.com/download
+    - Activate model:
+      
+            ollama run gemma3:4b 
+    
+
+Prompt for gemma3 model (Ollama):
+    
+    «Ты мой эффективный AI‑ассистент по анализу стенограмм совещаний и лекций. Вот тебе текст разговора нескольких людей. Сделай из него структурированное саммари на русском языке. В саммари обязательно выдели следующие пункты (можно использовать маркированные списки):
+
+    1. Основные обсуждавшиеся темы или вопросы.
+    
+    2. Ключевые аргументы, предложения или идеи, высказанные участниками (если были).
+    
+    3. Принятые решения (если таковые были).
+    
+    4. Поставленные задачи с указанием ответственных лиц (если это можно однозначно понять из текста).
+    
+    5. Главные выводы или итоги обсуждения».
