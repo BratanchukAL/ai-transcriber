@@ -40,7 +40,7 @@ def load_files(file_or_dir: Union[str, Path], excludes_folder: List[str]=None) -
     #
     for filename in files:
         found_excluded_folders = filter(lambda exclude: exclude in filename, excludes_folder)
-        if found_excluded_folders:
+        if next(found_excluded_folders, False):
             continue
 
         try:
