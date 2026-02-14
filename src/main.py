@@ -10,8 +10,11 @@ from typing import Union, Iterable, Tuple, List
 logger = logging.getLogger(__name__)
 
 
-def load_files(file_or_dir: Union[str, Path]) -> Iterable[Path]:
+def load_files(file_or_dir: Union[str, Path], excludes_folder: List[str]=None) -> Iterable[Path]:
     """ Загружает пути к файлам в указанном каталоге и его поддиректориях """
+    if excludes_folder is None:
+        excludes_folder = ['temp', 'tmp']
+
     file_or_dir = Path(file_or_dir)
     files: Union[List[Union[str, Path]]] = []
     strict_file_formats = ['wav', 'mp3', 'm4a']
@@ -36,6 +39,10 @@ def load_files(file_or_dir: Union[str, Path]) -> Iterable[Path]:
 
     #
     for filename in files:
+        found_excluded_folders = filter(lambda exclude: exclude in filename, excludes_folder)
+        if found_excluded_folders:
+            continue
+
         try:
             logger.info(f"В обработке файл: {filename} ")
             yield Path(filename)
@@ -56,10 +63,26 @@ if __name__ == "__main__":
     prompt = ""
 
     for audio_file in load_files('./../user_data'):
-        logger.info(f"ШАГ 1: Транскрипция Whisper")
+        # logger.info(f"ШАГ 1: Транскрипция Whisper")
+        # # Шаг 1: Транскрипция Whisper
+        # cmd = [
+        #     sys.executable, "./transcription/whisper/main.py",
+        #     audio_file,
+        #     "--lang", "ru",
+        #     "--temperature", str(temperature),
+        # ]
+        # if beam_size:
+        #     cmd += ["--beam_size", str(beam_size)]
+        # if condition:
+        #     cmd.append("--condition")
+        # if prompt:
+        #     cmd += ["--prompt", prompt]
+        # subprocess.run(cmd)
+
+        logger.info(f"ШАГ 1: Транскрипция GigaAM")
         # Шаг 1: Транскрипция Whisper
         cmd = [
-            sys.executable, "./transcription/whisper/main.py",
+            sys.executable, "./transcription/giga_am/main.py",
             audio_file,
             "--lang", "ru",
             "--temperature", str(temperature),
