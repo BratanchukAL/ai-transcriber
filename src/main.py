@@ -18,6 +18,7 @@ def load_files(file_or_dir: Union[str, Path], excludes_folder: List[str]=None) -
     file_or_dir = Path(file_or_dir)
     files: Union[List[Union[str, Path]]] = []
     strict_file_formats = ['wav', 'mp3', 'm4a']
+    strict_file_formats_regex = '|'.join(strict_file_formats)
 
     if file_or_dir.is_file():
         files = [file_or_dir]
@@ -26,7 +27,7 @@ def load_files(file_or_dir: Union[str, Path], excludes_folder: List[str]=None) -
         , strict_file_formats, [])
 
         if not files:
-            files = [Path(file_or_dir.__str__() + '.(wav|mp3)')]
+            files = [Path(file_or_dir.__str__() + f'.({strict_file_formats_regex})')]
 
     if files and not Path(files[0]).exists():
         files = []
