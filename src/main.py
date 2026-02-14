@@ -59,7 +59,7 @@ if __name__ == "__main__":
         logger.info(f"ШАГ 1: Транскрипция Whisper")
         # Шаг 1: Транскрипция Whisper
         cmd = [
-            sys.executable, "./transcription/main.py",
+            sys.executable, "./transcription/whisper/main.py",
             audio_file,
             "--lang", "ru",
             "--temperature", str(temperature),
@@ -72,16 +72,16 @@ if __name__ == "__main__":
             cmd += ["--prompt", prompt]
         subprocess.run(cmd)
 
-        # Шаг 2: Диаризация NeMo
-        logger.info(f"Шаг 2: Диаризация NeMo")
-        json_file = os.path.splitext(audio_file)[0] + ".json"
-        subprocess.run([
-            sys.executable,
-            "./diarization/main.py",
-            audio_file,  # <audio.wav>
-            json_file,  # <whisper.json>
-            "12"  # <max_speakers>
-        ])
+        # # Шаг 2: Диаризация NeMo
+        # logger.info(f"Шаг 2: Диаризация NeMo")
+        # json_file = os.path.splitext(audio_file)[0] + ".json"
+        # subprocess.run([
+        #     sys.executable,
+        #     "./diarization/main.py",
+        #     audio_file,  # <audio.wav>
+        #     json_file,  # <whisper.json>
+        #     "12"  # <max_speakers>
+        # ])
 
     # def run_pipeline(filepath, use_clean=True, do_summary=True, temperature="0", beam_size=None, condition=False,
     #                  prompt=""):
