@@ -1,17 +1,10 @@
 import argparse
 import json
-import os
-import time
 
 import gigaam
 
 
 #
-import hydra
-import torch
-from gigaam.model import LONGFORM_THRESHOLD
-
-from segmentation import transcribe
 
 
 """
@@ -36,7 +29,7 @@ Licensed under MIT License.
 import logging
 import os
 import tempfile
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Literal
 
 import numpy as np
 import soundfile as sf
@@ -44,22 +37,19 @@ import torch
 
 from base.asr import ASRModel
 from config import (
-    GIGAAM_MODEL,
     GIGAAM_MAX_SHORT_AUDIO_SEC,
     GIGAAM_CHUNK_SEC,
     GIGAAM_MIN_CHUNK_SEC,
-    MODEL_CACHE_DIR,
     MODEL_IDLE_TIMEOUT,
     SAMPLE_RATE,
+    DEFAULT_GIGAAM_MODEL,
 )
 
-from models.schemas import Segment, TranscriptionResponse, WordTimestamp
-from utils.audio import get_audio_duration, normalize_audio
+from models.schemas import Segment, TranscriptionResponse
+from utils.audio import get_audio_duration, normalize_audio, load_audio_from_path
 
 logger = logging.getLogger(__name__)
 
-# Default model name for GigaAM
-DEFAULT_GIGAAM_MODEL = "v3_e2e_rnnt"
 # Enable longform transcription via VAD (requires HF_TOKEN and pyannote access)
 # Set GIGAAM_USE_LONGFORM=true to enable, otherwise chunked transcription is used
 GIGAAM_USE_LONGFORM = os.environ.get("GIGAAM_USE_LONGFORM", "false").lower() == "true"
@@ -79,16 +69,14 @@ class GigaAMASR(ASRModel):
     - v1_rnnt, v1_ctc - первая версия
     """
 
-    def __init__(self) -> None:
+    def __init__(self, model_name: Literal['v3_e2e_rnnt', 'v3_e2e_ctc'] = DEFAULT_GIGAAM_MODEL) -> None:
+        """
+        :param model_name: Options: any model version with suffix `_ctc` or `_rnnt`
+        """
         super().__init__()
         self.model = None
         # Use GIGAAM_MODEL from config, default to v3_e2e_rnnt
-        self.model_name = GIGAAM_MODEL if GIGAAM_MODEL else DEFAULT_GIGAAM_MODEL
-        # Check if it's an HF path like "ai-sage/GigaAM-v3", convert to gigaam model name
-        if "/" in self.model_name:
-            # It's an HF path, extract model type or use default
-            self.model_name = DEFAULT_GIGAAM_MODEL
-            logger.info(f"Detected HF path in GIGAAM_MODEL, using default: {self.model_name}")
+        self.model_name = model_name
 
     def load_model(self) -> None:
         """
@@ -102,18 +90,18 @@ class GigaAMASR(ASRModel):
             logger.info(f"Loading GigaAM model: {self.model_name}")
 
             # Determine device
-            from src.utils.device import get_device
+            from utils.device import get_device
             device = get_device()
             device_str = str(device)
 
             # Configure download directory - use data/gigaam subdirectory
-            if MODEL_CACHE_DIR:
-                download_root = os.path.join(MODEL_CACHE_DIR, "gigaam")
-                # Ensure directory exists
-                os.makedirs(download_root, exist_ok=True)
-                logger.info(f"GigaAM cache directory: {download_root}")
-            else:
-                download_root = None
+            # if MODEL_CACHE_DIR:
+            #     download_root = os.path.join(MODEL_CACHE_DIR, "gigaam")
+            #     # Ensure directory exists
+            #     os.makedirs(download_root, exist_ok=True)
+            #     logger.info(f"GigaAM cache directory: {download_root}")
+            # else:
+            #     download_root = None
 
             # Load model with appropriate settings
             self.model = gigaam.load_model(
@@ -121,7 +109,7 @@ class GigaAMASR(ASRModel):
                 fp16_encoder=True if "cuda" in device_str else False,
                 use_flash=False,  # Disable flash attention for compatibility
                 device=device,
-                download_root=download_root,
+                # download_root=download_root,
             )
 
             logger.info(f"GigaAM model '{self.model_name}' loaded successfully on device: {device}")
@@ -141,10 +129,10 @@ class GigaAMASR(ASRModel):
     def transcribe(
         self,
         audio: np.ndarray,
-        task: str,
-        language: Optional[str],
-        word_timestamps: bool,
-        output: str,
+        task: str = 'transcribe',
+        language: Optional[str] = 'ru',
+        word_timestamps: bool = False,
+        output: str = 'text',
         options: Optional[dict] = None,
     ) -> Union[TranscriptionResponse, str]:
         """
@@ -509,38 +497,31 @@ class GigaAMASR(ASRModel):
             finally:
                 self.model = None
 
-def run_giga_am(audio_path: str):
+def run_giga_am(audio_path: str, output_folder_path: str):
     # Audio embeddings
     # model_name = "v3_ssl"  # Options: `v1_ssl`, `v2_ssl`, `v3_ssl`
     # model = gigaam.load_model(model_name)
     # embedding, _ = model.embed_audio(audio_path)
     # print(embedding)
 
+    audio = load_audio_from_path(file_path=audio_path)
     # ASR
-    model_name = "v3_e2e_rnnt"  # Options: any model version with suffix `_ctc` or `_rnnt`
-    model = gigaam.load_model(model_name)
-    wav, length = model.prepare_wav(audio_path)
-    encoded, encoded_len = model.forward(wav, length)
+    model_name: Literal['v3_e2e_rnnt'] = "v3_e2e_rnnt"  # "v3_e2e_rnnt" "v3_e2e_ctc"
+    asr = GigaAMASR(model_name)
+    asr.load_model()
+    result = asr.transcribe(
+        audio=audio,
+    )
+    print(result)
 
-    transcribe(ExGigaAMASR(model),
-               audio_path,
-               )
+    # Сохранение результата в JSON и TXT
+    base = output_folder_path
+    with open(base + ".json", "w", encoding="utf-8") as f:
+        json.dump(result.segments, f, ensure_ascii=False, indent=4)
+    with open(base + ".txt", "w", encoding="utf-8") as f:
+        f.write(result.text)
+    print("Сохранено:", base + ".json / .txt")
 
-    # wav, length = model.prepare_wav(audio_path)
-    # if length.item() > LONGFORM_THRESHOLD:
-    #     pass
-    # encoded, encoded_len = model.forward(wav, length)
-    # a  = model.decoding.decode(model.head, encoded, encoded_len)[0]
-
-    # utterances = model.transcribe_longform(audio_path)
-    # for utt in utterances:
-    #     transcription, (start, end) = utt["transcription"], utt["boundaries"]
-    #     print(f"[{gigaam.format_time(start)} - {gigaam.format_time(end)}]: {transcription}")
-
-    # model_name = "v3_e2e_rnnt"  # Options: any model version with suffix `_ctc` or `_rnnt`
-    # model = gigaam.load_model(model_name)
-    transcription = model.transcribe(audio_path)
-    # print(transcription)
     #
     # model_name = "v3_e2e_ctc"  # Options: any model version with suffix `_ctc` or `_rnnt`
     # model = gigaam.load_model(model_name)
@@ -548,9 +529,9 @@ def run_giga_am(audio_path: str):
     # print(transcription)
 
     # Emotion recognition
-    model = gigaam.load_model("emo")
-    emotion2prob = model.get_probs(audio_path)
-    print(", ".join([f"{emotion}: {prob:.3f}" for emotion, prob in emotion2prob.items()]))
+    # model = gigaam.load_model("emo")
+    # emotion2prob = model.get_probs(audio_path)
+    # print(", ".join([f"{emotion}: {prob:.3f}" for emotion, prob in emotion2prob.items()]))
 
 
 if __name__ == "__main__":
@@ -582,4 +563,7 @@ if __name__ == "__main__":
     if not os.path.isfile(args.path):
         raise SystemExit(f"Файл не найден: {args.path}")
 
-    run_giga_am(args.path)
+    run_giga_am(
+        audio_path=args.path,
+        output_folder_path=os.path.splitext(args.path)[0]
+    )

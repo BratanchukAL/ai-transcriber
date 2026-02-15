@@ -15,25 +15,15 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# =============================================================================
-# ASR Engine Configuration
-# =============================================================================
-
-# ASR engine to use: "transformers" or "whisperx"
-ASR_ENGINE = os.getenv("ASR_ENGINE", "transformers")
-
-# Model name for Hugging Face Transformers engine
-WHISPER_MODEL = os.getenv("WHISPER_MODEL", "openai/whisper-large-v3")
-
-# Model name for WhisperX engine
-WHISPERX_MODEL = os.getenv("WHISPERX_MODEL", "large-v3")
-
 # GigaAM model configuration
 # HF repository and optional revision for GigaAM models.
 # Examples:
 # - HF repo: 'ai-sage/GigaAM-v3' (recommended)
 # - Local package variant names used by the `gigaam` package: 'v3_e2e_rnnt', 'v3_e2e_ctc', etc.
-GIGAAM_MODEL = os.getenv("GIGAAM_MODEL", "ai-sage/GigaAM-v3")
+# GIGAAM_MODEL = os.getenv("GIGAAM_MODEL", "ai-sage/GigaAM-v3")
+
+# Default model name for GigaAM
+DEFAULT_GIGAAM_MODEL = "v3_e2e_rnnt"  # Options: any model version with suffix `_ctc` or `_rnnt`
 
 # Maximum audio duration (seconds) considered "short" for GigaAM `.transcribe()`.
 # For longer audio the service will split the audio into chunks and transcribe each chunk
@@ -50,14 +40,11 @@ GIGAAM_MIN_CHUNK_SEC = int(os.getenv("GIGAAM_MIN_CHUNK_SEC", "5"))
 # Device to use: "auto", "cuda", "cpu", "mps"
 DEVICE = os.getenv("DEVICE", "auto")
 
-# Compute type for WhisperX: "float16", "float32", "int8", etc.
-COMPUTE_TYPE = os.getenv("COMPUTE_TYPE", "float32")
-
 # Seconds before unloading idle model (0 = never)
 MODEL_IDLE_TIMEOUT = int(os.getenv("MODEL_IDLE_TIMEOUT", "0"))
 
 # Directory for caching downloaded models
-MODEL_CACHE_DIR = os.getenv("MODEL_CACHE_DIR", "./data")
+# MODEL_CACHE_DIR = os.getenv("MODEL_CACHE_DIR", "./data")
 
 # Directory for saving audio chunks and results for debugging (None = disabled)
 DEBUG_LOG_DIR = os.getenv("DEBUG_LOG_DIR", None)

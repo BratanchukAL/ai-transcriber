@@ -11,13 +11,13 @@ Copyright (c) 2025 Andrey Sobolev (haiodo@gmail.com)
 Licensed under MIT License.
 """
 
-from src.models.schemas import (
+from .schemas import (
     WordTimestamp,
     Segment,
     ConfidenceMetrics,
     TranscriptionResponse,
 )
-from src.models.openai import (
+from .openai import (
     OpenAIWord,
     OpenAISegment,
     OpenAITranscriptionResponse,
