@@ -32,6 +32,7 @@ from typing import Optional, Union, List, Literal, Callable, Any, TypeVar
 import numpy as np
 import soundfile as sf
 import torch
+from pydantic.json import pydantic_encoder
 
 from base.asr import ASRModel
 from config import (
@@ -547,7 +548,7 @@ def run_giga_am(audio_path: str, output_folder_path: str):
     # Сохранение результата в JSON и TXT
     base = output_folder_path
     with open(base + ".json", "w", encoding="utf-8") as f:
-        json.dump(result.segments, f, ensure_ascii=False, indent=4)
+        json.dump(result.segments, f, ensure_ascii=False, indent=4, default=pydantic_encoder)
     with open(base + ".txt", "w", encoding="utf-8") as f:
         f.write(result.text)
     print("Сохранено:", base + ".json / .txt")
