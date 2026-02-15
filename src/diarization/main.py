@@ -66,7 +66,7 @@ def merge_segments(stamps, labels, gap: float = 0.5):
 
 def main():
     if len(sys.argv) != 4:
-        print("Usage:  python diarize_nemo_auto.py <audio.wav> <whisper.json> <max_speakers>")
+        print("Usage:  python diarize_nemo_auto.py <audio.wav> <transcripted.json> <max_speakers>")
         sys.exit(1)
     wav_path, whisper_json, max_k = sys.argv[1], sys.argv[2], int(sys.argv[3])
     if not Path(wav_path).is_file() or not Path(whisper_json).is_file():
@@ -99,8 +99,8 @@ def main():
     spk_cnt = len(set(labels))
     print(f"   → selected {spk_cnt} speakers.")
     diar = merge_segments(stamps, labels)
-    # Мерджим с расшифровкой Whisper
-    print("Merging with Whisper transcript …")
+    # Мерджим с расшифровкой transcripted
+    print("Merging with transcripted transcript …")
     with open(whisper_json, encoding="utf-8") as f:
         whisper_segs = json.load(f)
     tagged = []
