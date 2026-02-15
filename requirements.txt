@@ -173,3 +173,5 @@ wrapt==1.17.3
 xxhash==3.5.0
 yarl==1.20.1
 git+https://github.com/salute-developers/GigaAM.git
+pyannote-audio==4.0.4
+torchcodec==0.8.1
