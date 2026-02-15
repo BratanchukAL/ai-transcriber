@@ -51,3 +51,10 @@ Only tasks
     6. Приоритет задачи (если есть).
 
 # TODO:
+- Сравнить качество распознания после спец обработки с помощью утилиты FFmpeg.
+- Silero VAD segmentation (https://github.com/Alenkar/kairos-asr/blob/main/kairos_asr%2Futils%2Fvad_utils.py)
+- Применить сегментацию к:
+    - transcription;
+    - diarization.  
+- Summarization Ollama (gemma3);
+- Pipelines.
