@@ -44,7 +44,7 @@ class ASRModel(ABC):
         ...     def load_model(self):
         ...         self.model = load_whisper_model()
         ...
-        ...     def transcribe(self, audio, task, language, word_timestamps, output, options=None):
+        ...     def transcribe(self, audio, task, language, word_timestamps, output_format, options=None):
         ...         result = self.model.transcribe(audio)
         ...         return TranscriptionResponse(text=result["text"])
         ...

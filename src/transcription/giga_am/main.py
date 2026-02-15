@@ -141,7 +141,7 @@ class GigaAMASR(ASRModel):
         task: str = 'transcribe',
         language: Optional[str] = 'ru',
         word_timestamps: bool = False,
-        output: str = 'text',
+        output_format: Literal['text', 'json'] = 'text',
         options: Optional[dict] = None,
     ) -> Union[TranscriptionResponse, str]:
         """
@@ -152,7 +152,7 @@ class GigaAMASR(ASRModel):
             task: "transcribe" или "translate" (GigaAM не поддерживает перевод)
             language: код языка (игнорируется, GigaAM работает только с русским)
             word_timestamps: требуется ли уровень слов (GigaAM не поддерживает)
-            output: "text" или "json"
+            output_format: "text" или "json"
             options: дополнительные опции (не используются)
 
         Returns:
@@ -223,7 +223,7 @@ class GigaAMASR(ASRModel):
 
         # Format and return result
         return self._format_result(
-            raw_result, duration=duration, output=output, language="ru"
+            raw_result, duration=duration, output=output_format, language="ru"
         )
 
     def _transcribe_chunked(self, audio: np.ndarray) -> List[dict]:
@@ -540,8 +540,9 @@ def run_giga_am(audio_path: str, output_folder_path: str):
     asr.load_model()
     result = asr.transcribe(
         audio=audio,
+        output_format='json'
     )
-    print(result)
+    # print(result)
 
     # Сохранение результата в JSON и TXT
     base = output_folder_path
