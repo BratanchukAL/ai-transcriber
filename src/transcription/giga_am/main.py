@@ -273,7 +273,10 @@ class GigaAMASR(ASRModel):
             start_sec = start / SAMPLE_RATE
 
             try:
-                self.event_next_chunk_instance = self.callable_event_next_chunk(len_chunks, index-1)
+                self.event_next_chunk_instance = self.callable_event_next_chunk(
+                    len_chunks, index-1,
+                    self.event_next_chunk_instance
+                )
 
                 subchunks = self._transcribe_chunk_with_retry(
                     chunk_audio, start_sec, GIGAAM_CHUNK_SEC, GIGAAM_MIN_CHUNK_SEC
@@ -523,14 +526,14 @@ def run_giga_am(audio_path: str, output_folder_path: str):
     # embedding, _ = model.embed_audio(audio_path)
     # print(embedding)
 
-    def show_progress_bar(size: int, current: int, instance=None) -> Any:
+    def show_progress_bar(size: int, current: int, instance: tqdm.tqdm = None) -> Any:
         if instance is None:
             instance = tqdm.tqdm(
                 total=size, unit="frames",
             )
         else:
             # update progress bar
-            instance.update(min(size, current))
+            instance.update(min(size, current) - instance.n)
         return instance
 
 
