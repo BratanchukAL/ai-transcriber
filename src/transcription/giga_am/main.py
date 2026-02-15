@@ -519,6 +519,7 @@ class GigaAMASR(ASRModel):
             finally:
                 self.model = None
 
+
 def run_giga_am(audio_path: str, output_folder_path: str):
     # Audio embeddings
     # model_name = "v3_ssl"  # Options: `v1_ssl`, `v2_ssl`, `v3_ssl`
