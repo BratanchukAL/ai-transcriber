@@ -17,18 +17,18 @@ from .schemas import (
     ConfidenceMetrics,
     TranscriptionResponse,
 )
-from .openai import (
-    OpenAIWord,
-    OpenAISegment,
-    OpenAITranscriptionResponse,
-)
+# from .openai import (
+#     OpenAIWord,
+#     OpenAISegment,
+#     OpenAITranscriptionResponse,
+# )
 
 __all__ = [
     "WordTimestamp",
     "Segment",
     "ConfidenceMetrics",
     "TranscriptionResponse",
-    "OpenAIWord",
-    "OpenAISegment",
-    "OpenAITranscriptionResponse",
+    # "OpenAIWord",
+    # "OpenAISegment",
+    # "OpenAITranscriptionResponse",
 ]
