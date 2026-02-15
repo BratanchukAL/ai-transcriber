@@ -8,6 +8,8 @@ Requirements:
 - ffmpeg (requirement Whisper) - https://github.com/BtbN/FFmpeg-Builds/releases - TODO: заменить на pyaudio и подготовить torch.Tensor?
 - pip install openai-whisper
 - Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools" (6 GB)
+- pip install nemo_toolkit["asr"]
+    - %user%/.cache\huggingface\hub\models--nvidia--speakerverification_en_titanet_large\snapshots\0dc382f40121a5fbd34db10a2bb04d826c2be6a8\speakerverification_en_titanet_large.nemo
 - Download Ollama https://ollama.com/download
     - Activate model:
       
@@ -29,4 +31,3 @@ Prompt for gemma3 model (Ollama):
     5. Главные выводы или итоги обсуждения».
 
 # TODO:
-- pip install nemo_toolkit["asr"]
