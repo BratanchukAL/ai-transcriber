@@ -20,10 +20,6 @@ Licensed under MIT License.
 
 import argparse
 import json
-
-import gigaam
-import tqdm
-
 import logging
 import os
 import tempfile
@@ -32,6 +28,7 @@ from typing import Optional, Union, List, Literal, Callable, Any, TypeVar
 import numpy as np
 import soundfile as sf
 import torch
+import tqdm
 from pydantic.json import pydantic_encoder
 
 from base.asr import ASRModel
@@ -43,7 +40,6 @@ from config import (
     SAMPLE_RATE,
     DEFAULT_GIGAAM_MODEL,
 )
-
 from models.schemas import Segment, TranscriptionResponse
 from utils.audio import get_audio_duration, normalize_audio, load_audio_from_path
 
