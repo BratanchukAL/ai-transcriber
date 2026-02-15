@@ -28,7 +28,7 @@ __all__ = [
     "Segment",
     "ConfidenceMetrics",
     "TranscriptionResponse",
-    # "OpenAIWord",
+    #  "OpenAIWord",
     # "OpenAISegment",
     # "OpenAITranscriptionResponse",
 ]
