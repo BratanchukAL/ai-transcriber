@@ -1,11 +1,3 @@
-import argparse
-import json
-
-import gigaam
-
-
-#
-
 
 """
 OAITT — Open AI Transformer Transcriber.
@@ -26,10 +18,16 @@ Copyright (c) 2026 Andrey Sobolev (haiodo@gmail.com)
 Licensed under MIT License.
 """
 
+import argparse
+import json
+
+import gigaam
+import tqdm
+
 import logging
 import os
 import tempfile
-from typing import Optional, Union, List, Literal
+from typing import Optional, Union, List, Literal, Callable, Any, TypeVar
 
 import numpy as np
 import soundfile as sf
@@ -54,6 +52,10 @@ logger = logging.getLogger(__name__)
 # Set GIGAAM_USE_LONGFORM=true to enable, otherwise chunked transcription is used
 GIGAAM_USE_LONGFORM = os.environ.get("GIGAAM_USE_LONGFORM", "false").lower() == "true"
 
+_TInstance = TypeVar("_TInstance")
+_TSize = TypeVar("_TSize", int, int)
+_TCurrent = TypeVar("_TCurrent", int, int)
+
 
 class GigaAMASR(ASRModel):
     """
@@ -69,14 +71,21 @@ class GigaAMASR(ASRModel):
     - v1_rnnt, v1_ctc - первая версия
     """
 
-    def __init__(self, model_name: Literal['v3_e2e_rnnt', 'v3_e2e_ctc'] = DEFAULT_GIGAAM_MODEL) -> None:
+    def __init__(self,
+                 model_name: Literal['v3_e2e_rnnt', 'v3_e2e_ctc'] = DEFAULT_GIGAAM_MODEL,
+                 callable_event_next_chunk: Callable[[_TSize, _TCurrent, _TInstance], _TInstance] = lambda: False
+                 ) -> None:
         """
+        :param callable_event_next_chunk:
         :param model_name: Options: any model version with suffix `_ctc` or `_rnnt`
         """
         super().__init__()
         self.model = None
         # Use GIGAAM_MODEL from config, default to v3_e2e_rnnt
         self.model_name = model_name
+
+        self.event_next_chunk_instance = None
+        self.callable_event_next_chunk = callable_event_next_chunk
 
     def load_model(self) -> None:
         """
@@ -256,13 +265,22 @@ class GigaAMASR(ASRModel):
             chunks.append((pos, end_pos))
             pos = end_pos
 
-        for start, end in chunks:
+        len_chunks = len(chunks)
+        for index, period in enumerate(chunks, start=1):
+            start, end = period
             chunk_audio = audio[start:end]
             start_sec = start / SAMPLE_RATE
 
             try:
+                self.event_next_chunk_instance = self.callable_event_next_chunk(len_chunks, index-1)
+
                 subchunks = self._transcribe_chunk_with_retry(
                     chunk_audio, start_sec, GIGAAM_CHUNK_SEC, GIGAAM_MIN_CHUNK_SEC
+                )
+
+                self.event_next_chunk_instance = self.callable_event_next_chunk(
+                    len_chunks, index,
+                    self.event_next_chunk_instance
                 )
             except Exception as e:
                 logger.error(f"Failed to transcribe chunk at {start_sec:.2f}s: {e}")
@@ -504,10 +522,21 @@ def run_giga_am(audio_path: str, output_folder_path: str):
     # embedding, _ = model.embed_audio(audio_path)
     # print(embedding)
 
+    def show_progress_bar(size: int, current: int, instance=None) -> Any:
+        if instance is None:
+            instance = tqdm.tqdm(
+                total=size, unit="frames",
+            )
+        else:
+            # update progress bar
+            instance.update(min(size, current))
+        return instance
+
+
     audio = load_audio_from_path(file_path=audio_path)
     # ASR
     model_name: Literal['v3_e2e_rnnt'] = "v3_e2e_rnnt"  # "v3_e2e_rnnt" "v3_e2e_ctc"
-    asr = GigaAMASR(model_name)
+    asr = GigaAMASR(model_name, show_progress_bar)
     asr.load_model()
     result = asr.transcribe(
         audio=audio,
