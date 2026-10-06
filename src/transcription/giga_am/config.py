@@ -32,9 +32,9 @@ GIGAAM_MAX_SHORT_AUDIO_SEC = float(os.getenv("GIGAAM_MAX_SHORT_AUDIO_SEC", "25.0
 
 # Chunk size (seconds) used when splitting long audio into fixed-size chunks for repeated
 # calls to `model.transcribe()`. Configure via env vars:
-#   - GIGAAM_CHUNK_SEC: preferred chunk size in seconds (default: 30)
+#   - GIGAAM_CHUNK_SEC: preferred chunk size in seconds (default: 25)
 #   - GIGAAM_MIN_CHUNK_SEC: minimum chunk size in seconds to attempt before giving up (default: 5)
-GIGAAM_CHUNK_SEC = int(os.getenv("GIGAAM_CHUNK_SEC", "30"))
+GIGAAM_CHUNK_SEC = int(os.getenv("GIGAAM_CHUNK_SEC", "25"))
 GIGAAM_MIN_CHUNK_SEC = int(os.getenv("GIGAAM_MIN_CHUNK_SEC", "5"))
 
 # Device to use: "auto", "cuda", "cpu", "mps"
